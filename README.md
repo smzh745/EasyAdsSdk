@@ -49,13 +49,13 @@ allprojects {
 In your app's `build.gradle.kts`:
 ```kotlin
 dependencies {
-    implementation("com.github.smzh745:EasyAdsSdk:1.0.0")
+    implementation("com.github.smzh745:EasyAdsSdk:v1.0.0")
 }
 ```
 *(Or in Groovy `build.gradle`):*
 ```groovy
 dependencies {
-    implementation 'com.github.smzh745:EasyAdsSdk:1.0.0'
+    implementation 'com.github.smzh745:EasyAdsSdk:v1.0.0'
 }
 ```
 
@@ -228,23 +228,3 @@ EasyAds.isAdFree = true
 * All future ad requests return immediately without loading or network activity.
 
 ---
-
-## 🚢 Deployment & Publishing to JitPack / GitHub
-
-### How to Release a New Version:
-1. **Commit and push your changes:**
-   ```bash
-   git add .
-   git commit -m "Release version 1.0.0"
-   git push origin master
-   ```
-
-2. **Create a Git Tag and Push:**
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-
-3. **Automatic Deployment:**
-   - **JitPack**: Automatically detects the `v1.0.0` tag, runs `publishToMavenLocal` using `jitpack.yml`, and builds the public library at `https://jitpack.io/#smzh745/EasyAdsSdk`.
-   - **GitHub Actions**: The `.github/workflows/release.yml` workflow automatically builds `easyads-release.aar` and attaches it directly to the GitHub Release for direct download.
