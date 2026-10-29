@@ -35,3 +35,4 @@ object TestAdUnits {
     /** Test Native Advanced Video Ad Unit ID */
     const val NATIVE_VIDEO = "ca-app-pub-3940256099942544/1044960115"
 }
+
