@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
     `maven-publish`
 }
 
@@ -27,6 +28,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     buildFeatures {
@@ -60,7 +65,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.smzh745"
                 artifactId = "EasyAdsSdk"
-                version = "1.0.2"
+                version = "1.0.3"
             }
         }
     }
