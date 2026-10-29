@@ -19,11 +19,16 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.button.MaterialButton
 import com.easyads.sdk.EasyAds
 import com.easyads.sdk.R
+import com.easyads.sdk.core.AdType
+import com.easyads.sdk.core.EasyAdsLogger
 import com.easyads.sdk.core.NetworkUtils
 
 class NativeAdManager internal constructor() {
 
     private val cachedNativeAds = mutableMapOf<String, NativeAd>()
+    private val inFlightCallbacks = mutableMapOf<String, MutableList<(NativeAd?) -> Unit>>()
+
+    fun isLoaded(adUnitId: String): Boolean = cachedNativeAds.containsKey(adUnitId)
 
     fun load(
         context: Context,
@@ -32,35 +37,78 @@ class NativeAdManager internal constructor() {
         onResult: (NativeAd?) -> Unit = {}
     ) {
         if (EasyAds.isAdFree) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.NATIVE, "User is Ad-Free", adUnitId, remoteKey)
             onResult(null)
             return
         }
         if (remoteKey != null && !EasyAds.isAdEnabled(remoteKey)) {
-            Log.d("EasyAds", "Native ad with remoteKey '$remoteKey' is disabled via Remote Config.")
+            EasyAdsLogger.logSkippedOrBlocked(AdType.NATIVE, "Disabled by Remote Config", adUnitId, remoteKey)
             onResult(null)
             return
         }
         if (!NetworkUtils.isNetworkAvailable(context)) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.NATIVE, "No internet connection", adUnitId, remoteKey)
+            onResult(null)
+            return
+        }
+        if (!EasyAds.consent.canRequestAds(context)) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.NATIVE, "Consent not obtained to request ads", adUnitId, remoteKey)
             onResult(null)
             return
         }
 
         cachedNativeAds[adUnitId]?.let {
+            EasyAdsLogger.d(AdType.NATIVE, "📦 Native ad reused from memory cache | adUnitId=$adUnitId")
             onResult(it)
             return
         }
 
-        val adLoader = AdLoader.Builder(context, adUnitId)
+        synchronized(inFlightCallbacks) {
+            val pending = inFlightCallbacks[adUnitId]
+            if (pending != null) {
+                EasyAdsLogger.d(AdType.NATIVE, "⏳ Native ad is already in-flight for $adUnitId. Queuing callback. | remoteKey: $remoteKey")
+                pending.add(onResult)
+                return
+            }
+            inFlightCallbacks[adUnitId] = mutableListOf(onResult)
+        }
+
+        EasyAdsLogger.logRequest(AdType.NATIVE, adUnitId, remoteKey)
+
+        val appContext = context.applicationContext ?: context
+        val adLoader = AdLoader.Builder(appContext, adUnitId)
             .forNativeAd { nativeAd ->
                 cachedNativeAds[adUnitId]?.destroy()
                 cachedNativeAds[adUnitId] = nativeAd
-                Log.d("EasyAds", "Native ad loaded for $adUnitId")
-                onResult(nativeAd)
+                EasyAdsLogger.logLoaded(AdType.NATIVE, adUnitId, "headline='${nativeAd.headline}'")
+                val callbacks = synchronized(inFlightCallbacks) {
+                    inFlightCallbacks.remove(adUnitId)
+                }.orEmpty()
+                callbacks.forEach { it.invoke(nativeAd) }
             }
             .withAdListener(object : AdListener() {
                 override fun onAdFailedToLoad(error: LoadAdError) {
-                    Log.e("EasyAds", "Native ad failed to load: ${error.message}")
-                    onResult(null)
+                    EasyAdsLogger.logFailedToLoad(AdType.NATIVE, adUnitId, error.code, error.message)
+                    val callbacks = synchronized(inFlightCallbacks) {
+                        inFlightCallbacks.remove(adUnitId)
+                    }.orEmpty()
+                    callbacks.forEach { it.invoke(null) }
+                }
+
+                override fun onAdImpression() {
+                    EasyAdsLogger.logImpression(AdType.NATIVE, adUnitId)
+                }
+
+                override fun onAdClicked() {
+                    EasyAdsLogger.logClicked(AdType.NATIVE, adUnitId)
+                }
+
+                override fun onAdOpened() {
+                    EasyAdsLogger.d(AdType.NATIVE, "📂 Native ad opened overlay | adUnitId=$adUnitId")
+                }
+
+                override fun onAdClosed() {
+                    EasyAdsLogger.d(AdType.NATIVE, "📁 Native ad overlay closed | adUnitId=$adUnitId")
                 }
             })
             .withNativeAdOptions(
@@ -118,6 +166,10 @@ class NativeAdManager internal constructor() {
             iconView?.setImageDrawable(nativeAd.icon?.drawable)
             iconView?.visibility = View.VISIBLE
             adView.iconView = iconView
+        } else if (nativeAd.images.isNotEmpty() && nativeAd.images[0].drawable != null) {
+            iconView?.setImageDrawable(nativeAd.images[0].drawable)
+            iconView?.visibility = View.VISIBLE
+            adView.imageView = iconView
         } else {
             iconView?.visibility = View.GONE
         }
@@ -158,13 +210,20 @@ class NativeAdManager internal constructor() {
 
         adView.setNativeAd(nativeAd)
         container.addView(adView)
+        EasyAdsLogger.logShown(AdType.NATIVE, nativeAd.headline ?: "NativeAd", "template=${template.javaClass.simpleName}")
     }
 
     fun destroy(adUnitId: String) {
+        synchronized(inFlightCallbacks) {
+            inFlightCallbacks.remove(adUnitId)
+        }
         cachedNativeAds.remove(adUnitId)?.destroy()
     }
 
     fun destroyAll() {
+        synchronized(inFlightCallbacks) {
+            inFlightCallbacks.clear()
+        }
         cachedNativeAds.values.forEach { it.destroy() }
         cachedNativeAds.clear()
     }

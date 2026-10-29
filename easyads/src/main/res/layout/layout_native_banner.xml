@@ -6,17 +6,17 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_native_card"
-    android:padding="6dp">
+    android:padding="8dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- App Icon -->
+        <!-- App Icon / Media on Left (Figma 4001:375) -->
         <ImageView
             android:id="@+id/adAppIcon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:contentDescription="Ad icon"
             android:scaleType="centerCrop"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -24,67 +24,79 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:src="@android:drawable/sym_def_app_icon" />
 
-        <!-- Attribution Badge -->
+        <com.google.android.gms.ads.nativead.MediaView
+            android:id="@+id/adMedia"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Badge (Figma 4001:380 - yellow #FFC559) -->
         <TextView
             android:id="@+id/adAttribution"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="10dp"
             android:background="@drawable/bg_ad_badge"
-            android:text="AD"
-            android:textColor="#FFFFFF"
-            android:textSize="9sp"
+            android:text="Ad"
+            android:textColor="#000000"
+            android:textSize="10sp"
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@id/adAppIcon"
             app:layout_constraintTop_toTopOf="@id/adAppIcon" />
 
-        <!-- Headline -->
+        <!-- Headline (Figma 4001:378) -->
         <TextView
             android:id="@+id/adHeadline"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="6dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="#1F1F1F"
+            android:textColor="#000000"
             android:textSize="13sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@id/adAttribution"
             app:layout_constraintEnd_toStartOf="@id/adCallToAction"
             app:layout_constraintStart_toEndOf="@id/adAttribution"
             app:layout_constraintTop_toTopOf="@id/adAttribution"
-            tools:text="App Headline Here" />
+            tools:text="TV Web Browser - BrowseHere" />
 
-        <!-- Body / Description -->
+        <!-- Body / Description (Figma 4001:379) -->
         <TextView
             android:id="@+id/adBody"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="6dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
             android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="#757575"
+            android:maxLines="2"
+            android:textColor="#333333"
             android:textSize="11sp"
             app:layout_constraintBottom_toBottomOf="@id/adAppIcon"
             app:layout_constraintEnd_toStartOf="@id/adCallToAction"
             app:layout_constraintStart_toEndOf="@id/adAppIcon"
-            tools:text="Short description of the advertised app or product." />
+            app:layout_constraintTop_toBottomOf="@id/adHeadline"
+            tools:text="TV browser BrowseHere is one of the most UI refined..." />
 
-        <!-- CTA Button -->
+        <!-- CTA Button (Figma 4001:384 - green #34BF49) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/adCallToAction"
             android:layout_width="wrap_content"
-            android:layout_height="34dp"
-            android:backgroundTint="#1976D2"
+            android:layout_height="38dp"
+            android:backgroundTint="#34BF49"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:paddingHorizontal="14dp"
+            android:paddingHorizontal="16dp"
             android:text="Install"
             android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            app:cornerRadius="6dp"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:cornerRadius="19dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

@@ -19,12 +19,21 @@ class SplashActivity : AppCompatActivity() {
         // Block auto-resume ads while splash is displaying
         EasyAds.isAppOpenBlocked = true
 
-        // Attempt to show Splash App Open ad (max 5s wait)
-        showSplashAppOpenAd(
-            adUnitId = getString(R.string.test_app_open_id),
-            timeoutMs = 5000L
-        ) {
-            navigateToMain()
+        // 1. Request Google UMP GDPR Consent first
+        EasyAds.consent.requestConsent(this) { canRequestAds ->
+            if (isFinishing || isDestroyed) return@requestConsent
+
+            if (canRequestAds) {
+                // 2. Load and show Splash App Open ad (safety timeout 4s)
+                showSplashAppOpenAd(
+                    adUnitId = getString(R.string.test_app_open_id),
+                    timeoutMs = 4000L
+                ) {
+                    navigateToMain()
+                }
+            } else {
+                navigateToMain()
+            }
         }
     }
 

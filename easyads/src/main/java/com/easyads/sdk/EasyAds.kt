@@ -8,6 +8,7 @@ import com.easyads.sdk.appopen.AppOpenAdManager
 import com.easyads.sdk.banner.BannerAdManager
 import com.easyads.sdk.config.DefaultRemoteConfigManager
 import com.easyads.sdk.config.RemoteConfigProvider
+import com.easyads.sdk.consent.ConsentManager
 import com.easyads.sdk.interstitial.InterstitialAdManager
 import com.easyads.sdk.nativead.NativeAdManager
 import com.easyads.sdk.rewarded.RewardedAdManager
@@ -28,6 +29,7 @@ object EasyAds {
     val nativeAd: NativeAdManager by lazy { NativeAdManager() }
     val appOpen: AppOpenAdManager by lazy { AppOpenAdManager() }
     val rewarded: RewardedAdManager by lazy { RewardedAdManager() }
+    val consent: ConsentManager by lazy { ConsentManager() }
 
     val remoteConfig = DefaultRemoteConfigManager()
 
@@ -40,7 +42,7 @@ object EasyAds {
             field = value
             if (value) {
                 destroyAllAds()
-                Log.d("EasyAds", "User marked as Ad-Free. All in-memory ad caches destroyed.")
+                com.easyads.sdk.core.EasyAdsLogger.i(com.easyads.sdk.core.AdType.GENERAL, "⭐️ User marked as Ad-Free. All in-memory ad caches destroyed.")
             }
         }
 
@@ -49,14 +51,28 @@ object EasyAds {
      */
     var isAppOpenBlocked: Boolean = false
 
+
+    /**
+     * Controls whether EasyAds logging and debug features are enabled.
+     */
+    var isDebug: Boolean
+        get() = com.easyads.sdk.core.EasyAdsLogger.isEnabled
+        set(value) {
+            com.easyads.sdk.core.EasyAdsLogger.isEnabled = value
+        }
+
     /**
      * Initializes Google Mobile Ads SDK.
      */
     fun initialize(
         context: Context,
+        isDebug: Boolean = false,
         testDeviceIds: List<String> = emptyList(),
         onInitialized: () -> Unit = {}
     ) {
+        this.isDebug = isDebug
+        com.easyads.sdk.core.EasyAdsLogger.i(com.easyads.sdk.core.AdType.GENERAL, "🚀 Initializing Google MobileAds SDK...")
+
         if (testDeviceIds.isNotEmpty()) {
             val configuration = RequestConfiguration.Builder()
                 .setTestDeviceIds(testDeviceIds)
@@ -65,7 +81,10 @@ object EasyAds {
         }
 
         MobileAds.initialize(context) { initializationStatus ->
-            Log.d("EasyAds", "MobileAds initialized: ${initializationStatus.adapterStatusMap.keys}")
+            com.easyads.sdk.core.EasyAdsLogger.i(
+                com.easyads.sdk.core.AdType.GENERAL,
+                "✅ Google MobileAds SDK initialized successfully: ${initializationStatus.adapterStatusMap.keys}"
+            )
             onInitialized()
         }
     }

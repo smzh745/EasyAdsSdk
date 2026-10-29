@@ -41,12 +41,17 @@ class DefaultRemoteConfigManager : RemoteConfigProvider {
 
     override fun isAdEnabled(key: String): Boolean {
         customProvider?.let {
-            return it.isAdEnabled(key)
+            val enabled = it.isAdEnabled(key)
+            com.easyads.sdk.core.EasyAdsLogger.logRemoteConfig(key, enabled)
+            return enabled
         }
 
-        val raw = values[key] ?: return true // Enabled by default if not specified
+        val raw = values[key] ?: run {
+            com.easyads.sdk.core.EasyAdsLogger.logRemoteConfig(key, true)
+            return true // Enabled by default if not specified
+        }
 
-        return when (raw) {
+        val enabled = when (raw) {
             is Boolean -> raw
             is Number -> raw.toInt() != 0
             is String -> {
@@ -55,6 +60,8 @@ class DefaultRemoteConfigManager : RemoteConfigProvider {
             }
             else -> true
         }
+        com.easyads.sdk.core.EasyAdsLogger.logRemoteConfig(key, enabled)
+        return enabled
     }
 
     override fun getString(key: String, defaultValue: String): String {

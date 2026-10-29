@@ -11,6 +11,8 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.easyads.sdk.EasyAds
 import com.easyads.sdk.core.AdResult
+import com.easyads.sdk.core.AdType
+import com.easyads.sdk.core.EasyAdsLogger
 import com.easyads.sdk.core.FullscreenGate
 import com.easyads.sdk.core.NetworkUtils
 import com.easyads.sdk.core.isSafeForAd
@@ -28,45 +30,62 @@ class InterstitialAdManager internal constructor() {
         remoteKey: String? = null,
         onResult: (AdResult) -> Unit = {}
     ) {
+        EasyAdsLogger.logRequest(AdType.INTERSTITIAL, adUnitId, remoteKey)
+
         if (EasyAds.isAdFree) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.INTERSTITIAL, "User is Ad-Free", adUnitId, remoteKey)
             onResult(AdResult.Failed("User is Ad-Free"))
             return
         }
         if (remoteKey != null && !EasyAds.isAdEnabled(remoteKey)) {
-            Log.d("EasyAds", "Interstitial with remoteKey '$remoteKey' is disabled via Remote Config.")
+            EasyAdsLogger.logSkippedOrBlocked(AdType.INTERSTITIAL, "Disabled by Remote Config", adUnitId, remoteKey)
             onResult(AdResult.Failed("Disabled by Remote Config"))
             return
         }
         if (!NetworkUtils.isNetworkAvailable(context)) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.INTERSTITIAL, "No internet connection", adUnitId, remoteKey)
             onResult(AdResult.Failed("No internet connection"))
             return
         }
+        if (!EasyAds.consent.canRequestAds(context)) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.INTERSTITIAL, "Consent not obtained to request ads", adUnitId, remoteKey)
+            onResult(AdResult.Failed("Consent not obtained"))
+            return
+        }
         if (cachedAds.containsKey(adUnitId)) {
+            EasyAdsLogger.d(AdType.INTERSTITIAL, "📦 Interstitial ad already in memory cache | adUnitId=$adUnitId")
             onResult(AdResult.Loaded)
             return
         }
         if (loadingAdUnits.contains(adUnitId)) {
+            EasyAdsLogger.d(AdType.INTERSTITIAL, "⏳ Interstitial ad is already loading in background | adUnitId=$adUnitId")
             return
         }
 
         loadingAdUnits.add(adUnitId)
         val adRequest = AdRequest.Builder().build()
+        val appContext = context.applicationContext ?: context
 
         InterstitialAd.load(
-            context,
+            appContext,
             adUnitId,
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
                     loadingAdUnits.remove(adUnitId)
                     cachedAds[adUnitId] = interstitialAd
-                    Log.d("EasyAds", "Interstitial loaded: $adUnitId")
+                    EasyAdsLogger.logLoaded(AdType.INTERSTITIAL, adUnitId)
                     onResult(AdResult.Loaded)
                 }
 
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
                     loadingAdUnits.remove(adUnitId)
-                    Log.e("EasyAds", "Interstitial failed to load: ${loadAdError.message}")
+                    EasyAdsLogger.logFailedToLoad(
+                        AdType.INTERSTITIAL,
+                        adUnitId,
+                        loadAdError.code,
+                        loadAdError.message
+                    )
                     onResult(AdResult.Failed(loadAdError.message))
                 }
             }
@@ -85,26 +104,34 @@ class InterstitialAdManager internal constructor() {
         autoReload: Boolean = true,
         onDismissed: () -> Unit
     ) {
+        EasyAdsLogger.logShowRequested(AdType.INTERSTITIAL, adUnitId, remoteKey)
+
         if (!activity.isSafeForAd() || EasyAds.isAdFree) {
+            EasyAdsLogger.logSkippedOrBlocked(
+                AdType.INTERSTITIAL,
+                if (EasyAds.isAdFree) "User is Ad-Free" else "Activity invalid or finishing",
+                adUnitId,
+                remoteKey
+            )
             onDismissed()
             return
         }
 
         if (remoteKey != null && !EasyAds.isAdEnabled(remoteKey)) {
-            Log.d("EasyAds", "Interstitial '$remoteKey' disabled via Remote Config. Continuing flow.")
+            EasyAdsLogger.logSkippedOrBlocked(AdType.INTERSTITIAL, "Disabled by Remote Config", adUnitId, remoteKey)
             onDismissed()
             return
         }
 
         if (FullscreenGate.isShowing) {
-            Log.w("EasyAds", "Fullscreen ad is already active. Skipping interstitial.")
+            EasyAdsLogger.logSkippedOrBlocked(AdType.INTERSTITIAL, "Another fullscreen ad is actively displaying", adUnitId, remoteKey)
             onDismissed()
             return
         }
 
         val ad = cachedAds.remove(adUnitId)
         if (ad == null) {
-            Log.d("EasyAds", "No cached interstitial for $adUnitId. Proceeding.")
+            EasyAdsLogger.logSkippedOrBlocked(AdType.INTERSTITIAL, "No cached ad available in memory", adUnitId, remoteKey)
             if (autoReload) {
                 load(activity, adUnitId, remoteKey)
             }
@@ -115,10 +142,21 @@ class InterstitialAdManager internal constructor() {
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
                 FullscreenGate.onAdShowing()
+                EasyAdsLogger.logShown(AdType.INTERSTITIAL, adUnitId)
+            }
+
+            override fun onAdImpression() {
+                EasyAdsLogger.logImpression(AdType.INTERSTITIAL, adUnitId)
+            }
+
+            override fun onAdClicked() {
+                EasyAdsLogger.logClicked(AdType.INTERSTITIAL, adUnitId)
             }
 
             override fun onAdDismissedFullScreenContent() {
+                ad.fullScreenContentCallback = null
                 FullscreenGate.onAdDismissed()
+                EasyAdsLogger.logDismissed(AdType.INTERSTITIAL, adUnitId)
                 if (autoReload) {
                     load(activity, adUnitId, remoteKey)
                 }
@@ -126,8 +164,14 @@ class InterstitialAdManager internal constructor() {
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                ad.fullScreenContentCallback = null
                 FullscreenGate.onAdDismissed()
-                Log.e("EasyAds", "Interstitial failed to show: ${adError.message}")
+                EasyAdsLogger.logFailedToShow(
+                    AdType.INTERSTITIAL,
+                    adUnitId,
+                    adError.code,
+                    adError.message
+                )
                 if (autoReload) {
                     load(activity, adUnitId, remoteKey)
                 }
@@ -136,6 +180,56 @@ class InterstitialAdManager internal constructor() {
         }
 
         ad.show(activity)
+    }
+
+    /**
+     * Loads and displays an interstitial ad. If already loaded, it shows immediately.
+     * Otherwise it waits up to [timeoutMs] to load and show.
+     * [onDismissed] is guaranteed to be invoked.
+     */
+    fun loadAndShow(
+        activity: Activity,
+        adUnitId: String,
+        remoteKey: String? = null,
+        timeoutMs: Long = 4000L,
+        onDismissed: () -> Unit
+    ) {
+        if (!activity.isSafeForAd() || EasyAds.isAdFree || !NetworkUtils.isNetworkAvailable(activity)) {
+            onDismissed()
+            return
+        }
+
+        if (remoteKey != null && !EasyAds.isAdEnabled(remoteKey)) {
+            onDismissed()
+            return
+        }
+
+        if (isLoaded(adUnitId)) {
+            show(activity, adUnitId, remoteKey, autoReload = true, onDismissed = onDismissed)
+            return
+        }
+
+        var isHandled = false
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        val timeoutRunnable = Runnable {
+            if (!isHandled) {
+                isHandled = true
+                onDismissed()
+            }
+        }
+        handler.postDelayed(timeoutRunnable, timeoutMs)
+
+        load(activity, adUnitId, remoteKey) { result ->
+            if (!isHandled) {
+                handler.removeCallbacks(timeoutRunnable)
+                isHandled = true
+                if (result is AdResult.Loaded) {
+                    show(activity, adUnitId, remoteKey, autoReload = true, onDismissed = onDismissed)
+                } else {
+                    onDismissed()
+                }
+            }
+        }
     }
 
     fun destroyAll() {

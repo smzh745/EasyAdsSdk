@@ -36,6 +36,17 @@ class EasyBannerView @JvmOverloads constructor(
         )
     }
 
+    fun load(
+        fragment: androidx.fragment.app.Fragment,
+        adUnitId: String,
+        bannerType: BannerType = BannerType.ADAPTIVE,
+        remoteKey: String? = null,
+        onResult: (AdResult) -> Unit = {}
+    ) {
+        val act = fragment.activity ?: return
+        load(act, adUnitId, bannerType, remoteKey, onResult)
+    }
+
     fun pause() {
         activeAdView?.pause()
     }

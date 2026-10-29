@@ -13,6 +13,8 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
 import com.easyads.sdk.EasyAds
 import com.easyads.sdk.core.AdResult
+import com.easyads.sdk.core.AdType
+import com.easyads.sdk.core.EasyAdsLogger
 import com.easyads.sdk.core.NetworkUtils
 import com.easyads.sdk.core.isSafeForAd
 
@@ -28,32 +30,45 @@ class BannerAdManager internal constructor() {
         remoteKey: String? = null,
         onResult: (AdResult) -> Unit = {}
     ): AdView? {
+        EasyAdsLogger.logRequest(AdType.BANNER, adUnitId, remoteKey, "type=${bannerType.name}")
+
         if (!activity.isSafeForAd()) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.BANNER, "Activity invalid or finishing", adUnitId, remoteKey)
             onResult(AdResult.Failed("Activity is invalid or finishing"))
             return null
         }
         if (EasyAds.isAdFree) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.BANNER, "User is Ad-Free", adUnitId, remoteKey)
             container.removeAllViews()
             onResult(AdResult.Failed("User is Ad-Free"))
             return null
         }
         if (remoteKey != null && !EasyAds.isAdEnabled(remoteKey)) {
-            Log.d("EasyAds", "Banner with remoteKey '$remoteKey' is disabled via Remote Config.")
+            EasyAdsLogger.logSkippedOrBlocked(AdType.BANNER, "Disabled by Remote Config", adUnitId, remoteKey)
             container.removeAllViews()
             onResult(AdResult.Failed("Disabled by Remote Config"))
             return null
         }
         if (!NetworkUtils.isNetworkAvailable(activity)) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.BANNER, "No internet connection", adUnitId, remoteKey)
             container.removeAllViews()
             onResult(AdResult.Failed("No internet connection"))
+            return null
+        }
+        if (!EasyAds.consent.canRequestAds(activity)) {
+            EasyAdsLogger.logSkippedOrBlocked(AdType.BANNER, "Consent not obtained to request ads", adUnitId, remoteKey)
+            container.removeAllViews()
+            onResult(AdResult.Failed("Consent not obtained"))
             return null
         }
 
         // Return cached ad view if available for this placement
         cachedBanners[adUnitId]?.let { cachedView ->
+            EasyAdsLogger.d(AdType.BANNER, "📦 Reusing cached Banner view | adUnitId=$adUnitId")
             (cachedView.parent as? ViewGroup)?.removeView(cachedView)
             container.removeAllViews()
             container.addView(cachedView)
+            EasyAdsLogger.logShown(AdType.BANNER, adUnitId, "Attached cached view")
             onResult(AdResult.Loaded)
             return cachedView
         }
@@ -86,20 +101,32 @@ class BannerAdManager internal constructor() {
                 container.removeAllViews()
                 container.addView(adView)
                 cachedBanners[adUnitId] = adView
+                EasyAdsLogger.logLoaded(AdType.BANNER, adUnitId)
+                EasyAdsLogger.logShown(AdType.BANNER, adUnitId, "Attached to container")
                 onResult(AdResult.Loaded)
             }
 
             override fun onAdFailedToLoad(error: LoadAdError) {
-                Log.e("EasyAds", "Banner failed to load: ${error.message}")
+                EasyAdsLogger.logFailedToLoad(AdType.BANNER, adUnitId, error.code, error.message)
                 container.removeAllViews()
                 onResult(AdResult.Failed(error.message))
             }
 
+            override fun onAdImpression() {
+                EasyAdsLogger.logImpression(AdType.BANNER, adUnitId)
+            }
+
+            override fun onAdClicked() {
+                EasyAdsLogger.logClicked(AdType.BANNER, adUnitId)
+            }
+
             override fun onAdOpened() {
+                EasyAdsLogger.logShown(AdType.BANNER, adUnitId, "Opened full screen overlay")
                 onResult(AdResult.Shown)
             }
 
             override fun onAdClosed() {
+                EasyAdsLogger.logDismissed(AdType.BANNER, adUnitId)
                 onResult(AdResult.Dismissed)
             }
         }

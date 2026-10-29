@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.easyads.demo.databinding.ActivityMainBinding
 import com.easyads.sdk.EasyAds
 import com.easyads.sdk.banner.BannerType
+import com.easyads.sdk.core.FrequencyCounter
 import com.easyads.sdk.extensions.loadInterstitialAd
 import com.easyads.sdk.extensions.showInterstitialAd
 import com.easyads.sdk.extensions.showRewardedAd
@@ -16,6 +17,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var currentNativeTemplate: NativeTemplate = NativeTemplate.MEDIUM
     private var earnedCoins = 0
+    private val frequencyCounter = FrequencyCounter(minInterval = 2, maxInterval = 3)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,10 +25,31 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupAdFreeSwitch()
+        setupPrivacyOptions()
         setupRemoteConfigSwitches()
         setupNativeSizeButtons()
         setupFullscreenButtons()
+        setupFrequencyCounterButton()
         loadAds()
+    }
+
+    private fun setupPrivacyOptions() {
+        val isRequired = EasyAds.consent.isPrivacyOptionsRequired(this)
+        binding.tvConsentStatus.text = if (isRequired) {
+            "Status: Required (EEA user) - Tap to modify"
+        } else {
+            "Status: Form available - Tap to preview"
+        }
+
+        binding.btnPrivacyOptions.setOnClickListener {
+            EasyAds.consent.showPrivacyOptionsForm(this) { error ->
+                if (error != null) {
+                    Toast.makeText(this, "Error: ${error.message}", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Consent options updated", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun setupAdFreeSwitch() {
@@ -131,6 +154,29 @@ class MainActivity : AppCompatActivity() {
                 }
             )
         }
+    }
+
+    private fun setupFrequencyCounterButton() {
+        updateFrequencyButtonText()
+        binding.btnFrequencyInterstitial.setOnClickListener {
+            val triggered = frequencyCounter.onAction {
+                showInterstitialAd(
+                    adUnitId = getString(R.string.test_interstitial_id),
+                    remoteKey = REMOTE_KEY_INTERSTITIAL,
+                    autoReload = true
+                ) {
+                    Toast.makeText(this, "Frequency Interstitial dismissed", Toast.LENGTH_SHORT).show()
+                }
+            }
+            updateFrequencyButtonText()
+            if (!triggered) {
+                Toast.makeText(this, "Action registered (${frequencyCounter.currentCount}/${frequencyCounter.target})", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun updateFrequencyButtonText() {
+        binding.btnFrequencyInterstitial.text = "Frequency Gate (${frequencyCounter.currentCount}/${frequencyCounter.target} clicks to show ad)"
     }
 
     private fun loadAds() {

@@ -31,6 +31,20 @@ fun Fragment.showInterstitialAd(
     }
 }
 
+fun Fragment.loadAndShowInterstitialAd(
+    adUnitId: String,
+    remoteKey: String? = null,
+    timeoutMs: Long = 4000L,
+    onDismissed: () -> Unit
+) {
+    val act = activity
+    if (act != null) {
+        EasyAds.interstitial.loadAndShow(act, adUnitId, remoteKey, timeoutMs, onDismissed)
+    } else {
+        onDismissed()
+    }
+}
+
 fun Fragment.loadInterstitialAd(
     adUnitId: String,
     remoteKey: String? = null,

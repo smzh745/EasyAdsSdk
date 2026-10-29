@@ -26,6 +26,15 @@ fun Activity.showInterstitialAd(
     EasyAds.interstitial.show(this, adUnitId, remoteKey, autoReload, onDismissed)
 }
 
+fun Activity.loadAndShowInterstitialAd(
+    adUnitId: String,
+    remoteKey: String? = null,
+    timeoutMs: Long = 4000L,
+    onDismissed: () -> Unit
+) {
+    EasyAds.interstitial.loadAndShow(this, adUnitId, remoteKey, timeoutMs, onDismissed)
+}
+
 fun Activity.loadInterstitialAd(
     adUnitId: String,
     remoteKey: String? = null,

@@ -19,6 +19,12 @@ sealed class NativeTemplate(@get:LayoutRes val layoutResId: Int) {
     /** Prominent high-impact card with 180dp media view, star rating & full-width CTA (~360dp). */
     data object LARGE : NativeTemplate(R.layout.layout_native_large)
 
+    /** Shimmer placeholder for Banner template while loading. */
+    data object SHIMMER_BANNER : NativeTemplate(R.layout.layout_native_shimmer_banner)
+
+    /** Shimmer placeholder for Medium template while loading. */
+    data object SHIMMER_MEDIUM : NativeTemplate(R.layout.layout_native_shimmer_medium)
+
     /** Fully custom layout provided by host application. */
     data class CUSTOM(@get:LayoutRes val customLayoutRes: Int) : NativeTemplate(customLayoutRes)
 
@@ -33,6 +39,8 @@ sealed class NativeTemplate(@get:LayoutRes val layoutResId: Int) {
                 "small" -> SMALL
                 "medium" -> MEDIUM
                 "large" -> LARGE
+                "shimmer_banner" -> SHIMMER_BANNER
+                "shimmer_medium" -> SHIMMER_MEDIUM
                 else -> default
             }
         }
