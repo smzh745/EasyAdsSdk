@@ -59,8 +59,8 @@ afterEvaluate {
             register<MavenPublication>("release") {
                 from(components["release"])
                 groupId = "com.github.smzh745"
-                artifactId = "easyads"
-                version = "1.0.0"
+                artifactId = "EasyAdsSdk"
+                version = "1.0.1"
             }
         }
     }
