@@ -59,6 +59,7 @@ data class NativeAdStyle(
 
         // 3. Ad Attribution Badge
         val badgeView = adView.findViewById<TextView>(R.id.adBadge)
+            ?: adView.findViewById<TextView>(R.id.adAttribution)
         if (badgeView != null) {
             adBadgeTextColor?.let { badgeView.setTextColor(it) }
             adBadgeBackgroundColor?.let { color ->

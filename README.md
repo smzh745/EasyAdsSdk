@@ -50,13 +50,13 @@ allprojects {
 In your app's `build.gradle.kts` (Kotlin DSL):
 ```kotlin
 dependencies {
-    implementation("com.github.smzh745:EasyAdsSdk:v1.0.3")
+    implementation("com.github.smzh745:EasyAdsSdk:v1.0.4")
 }
 ```
 *(Or in Groovy `build.gradle`):*
 ```groovy
 dependencies {
-    implementation 'com.github.smzh745:EasyAdsSdk:v1.0.3'
+    implementation 'com.github.smzh745:EasyAdsSdk:v1.0.4'
 }
 ```
 

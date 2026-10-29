@@ -65,7 +65,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.smzh745"
                 artifactId = "EasyAdsSdk"
-                version = "1.0.3"
+                version = "1.0.4"
             }
         }
     }

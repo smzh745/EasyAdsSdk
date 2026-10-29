@@ -23,8 +23,10 @@ class FrequencyCounter(
     val minInterval: Int = 2,
     val maxInterval: Int = minInterval
 ) {
-    require(minInterval > 0) { "minInterval must be greater than 0" }
-    require(maxInterval >= minInterval) { "maxInterval cannot be less than minInterval" }
+    init {
+        require(minInterval > 0) { "minInterval must be greater than 0" }
+        require(maxInterval >= minInterval) { "maxInterval cannot be less than minInterval" }
+    }
 
     private val counter = AtomicInteger(0)
 
