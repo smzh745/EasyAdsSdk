@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    `maven-publish`
 }
 
 android {
@@ -31,6 +32,12 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 }
 
 dependencies {
@@ -43,4 +50,18 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     api(libs.play.services.ads)
+    api(libs.facebook.shimmer)
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            register<MavenPublication>("release") {
+                from(components["release"])
+                groupId = "com.github.smzh745"
+                artifactId = "easyads"
+                version = "1.0.0"
+            }
+        }
+    }
 }

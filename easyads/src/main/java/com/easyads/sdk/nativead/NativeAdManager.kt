@@ -25,6 +25,7 @@ import com.easyads.sdk.core.NetworkUtils
 
 class NativeAdManager internal constructor() {
 
+    var defaultStyle: NativeAdStyle? = null
     private val cachedNativeAds = mutableMapOf<String, NativeAd>()
     private val inFlightCallbacks = mutableMapOf<String, MutableList<(NativeAd?) -> Unit>>()
 
@@ -124,7 +125,8 @@ class NativeAdManager internal constructor() {
     fun bind(
         nativeAd: NativeAd,
         container: ViewGroup,
-        template: NativeTemplate = NativeTemplate.MEDIUM
+        template: NativeTemplate = NativeTemplate.MEDIUM,
+        style: NativeAdStyle? = null
     ) {
         container.removeAllViews()
         val inflater = LayoutInflater.from(container.context)
@@ -207,6 +209,9 @@ class NativeAdManager internal constructor() {
                 it.visibility = View.GONE
             }
         }
+
+        // Apply optional brand style customization (colors, fonts, corners)
+        (style ?: defaultStyle)?.applyTo(adView)
 
         adView.setNativeAd(nativeAd)
         container.addView(adView)

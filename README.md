@@ -1,93 +1,110 @@
 # EasyAdsSdk
 
-A lightweight, clean, and decoupled Google Mobile Ads (AdMob) SDK and demo application for Android.
+[![Release](https://jitpack.io/v/smzh745/EasyAdsSdk.svg)](https://jitpack.io/#smzh745/EasyAdsSdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Inspired by modern production architectures, **EasyAds** eliminates complex boilerplate while retaining essential production rules:
-- **Decoupled UI**: Activities and Fragments never interact directly with raw AdMob SDK listeners.
+A lightweight, clean, and highly customizable Google Mobile Ads (AdMob) SDK and demo application for Android.
+
+Inspired by modern production architectures, **EasyAds** eliminates boilerplate while retaining essential production requirements:
+- **Decoupled Architecture**: Screens never interact directly with raw AdMob SDK objects.
 - **GDPR / Google UMP Ready**: Integrated Consent Management for EEA/UK users with in-app privacy revocability.
-- **Multiple Native Ad Sizes & Shimmer**: Built-in templates for **BANNER**, **SMALL**, **MEDIUM**, **LARGE**, shimmer placeholders, plus support for **CUSTOM** layouts.
-- **Dynamic Remote Config Control**: Toggle any ad placement on/off remotely (`isAdEnabled`) or change ad sizes dynamically via remote keys.
-- **Pure Kotlin**: No heavy third-party DI framework needed. Easy to drop into any project.
-- **Zero Fullscreen Collision**: Built-in concurrency gate ensures App Open, Interstitial, and Rewarded ads never overlap.
-- **Lifecycle & Memory Safe**: Safe Activity context checks (`isSafeForAd`), context-wrapper resolution (`findActivity()`), banner pause/resume/destroy, and complete cache purging.
-- **Frequency Capping**: Built-in thread-safe `FrequencyCounter` to show ads every N actions (e.g. 2-4 downloads, 2-3 clicks).
-- **One-Line Ad-Free Handling**: Instant memory eviction when the user purchases an ad-free tier.
+- **Customizable Styling**: Brand your Native Ads with custom colors, typography, and corner radii via `NativeAdStyle`.
+- **Pre-built Templates & Shimmer**: Built-in responsive layouts for **BANNER**, **SMALL**, **MEDIUM**, **LARGE**, shimmer loading states, plus 100% **CUSTOM** layout support.
+- **Built-in Test Ad Unit IDs**: Access official AdMob test IDs with `TestAdUnits.*` (no more hunting for test IDs).
+- **Dynamic Remote Config**: Toggle any ad on/off remotely (`isAdEnabled`) or change sizes dynamically via remote keys.
+- **Zero Fullscreen Collision**: Concurrency gate (`FullscreenGate`) ensures App Open, Interstitial, and Rewarded ads never overlap.
+- **Lifecycle & Memory Safe**: `isSafeForAd()` checks, `findActivity()` context unwrappers, and complete cache purging.
+- **Action Frequency Capping**: Thread-safe `FrequencyCounter` to trigger ads every N actions (e.g. every 2–4 downloads or 2–3 clicks).
+- **One-Line Ad-Free Mode**: `EasyAds.isAdFree = true` instantly purges all in-memory ad caches.
 
 ---
 
-## 📁 Project Structure
+## 📦 Installation
 
-```text
-EasyAdsSdk/
-├── easyads/                 # The reusable Ads SDK library module
-│   └── src/main/java/com/easyads/sdk/
-│       ├── EasyAds.kt                      # Main facade & config (init, isAdFree, isDebug, remoteConfig, destroyAll)
-│       ├── consent/
-│       │   └── ConsentManager.kt           # Google UMP GDPR consent gathering & privacy options
-│       ├── core/
-│       │   ├── AdResult.kt                 # Sealed interface callbacks (Loaded, Shown, Failed, etc.)
-│       │   ├── FullscreenGate.kt           # Concurrency gate preventing overlapping fullscreen ads
-│       │   ├── ActivitySafety.kt           # isSafeForAd() & findActivity() context unwrappers
-│       │   ├── FrequencyCounter.kt         # Thread-safe action interval & frequency gate
-│       │   ├── EasyAdsLogger.kt            # Tagged, debug-gated central logging
-│       │   └── NetworkUtils.kt             # Fast-fail network connectivity checks
-│       ├── config/
-│       │   ├── RemoteConfigProvider.kt     # Interface for plugging in Firebase Remote Config
-│       │   └── DefaultRemoteConfigManager.kt # Built-in thread-safe remote flag manager
-│       ├── banner/
-│       │   ├── BannerAdManager.kt          # Adaptive & Collapsible banner logic
-│       │   ├── BannerType.kt               # ADAPTIVE, COLLAPSIBLE_TOP, COLLAPSIBLE_BOTTOM
-│       │   └── view/EasyBannerView.kt      # Ready-to-use custom Banner View
-│       ├── interstitial/
-│       │   └── InterstitialAdManager.kt    # Preload & show interstitial ads with safety timeout
-│       ├── nativead/
-│       │   ├── NativeAdManager.kt          # Native ad loader & multi-size binder with in-flight deduplication
-│       │   ├── NativeTemplate.kt           # BANNER, SMALL, MEDIUM, LARGE, SHIMMER, CUSTOM
-│       │   └── view/EasyNativeView.kt      # Ready-to-use custom Native View
-│       ├── appopen/
-│       │   ├── AppOpenAdManager.kt         # Splash & App Resume App Open ads with activity exclusions
-│       │   └── AppOpenLifecycleTracker.kt  # ProcessLifecycleOwner observer
-│       ├── rewarded/
-│       │   └── RewardedAdManager.kt        # Rewarded video manager
-│       └── extensions/
-│           ├── ActivityExtensions.kt       # Activity helper extensions
-│           └── FragmentExtensions.kt       # Fragment helper extensions
-└── app/                     # Demo implementation module showcasing all formats & toggles
-```
-
----
-
-## 🚀 Setup & Initialization
-
-### 1. In `Application.onCreate()`:
+### Step 1: Add JitPack repository
+In your root `settings.gradle.kts`:
 ```kotlin
-// Initialize EasyAds (logs only print when isDebug = true)
-EasyAds.initialize(this, isDebug = BuildConfig.DEBUG)
-
-// (Optional) Test EEA GDPR dialog in debug builds outside Europe:
-if (BuildConfig.DEBUG) {
-    EasyAds.consent.isDebugGeographyEEA = true
-    // EasyAds.consent.testDeviceHashedId = "YOUR_TEST_DEVICE_HASHED_ID" // If testing on physical device
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = java.net.URI("https://jitpack.io") }
+    }
 }
+```
 
-// (Optional) Enable App Resume Open Ad, excluding Splash/Onboarding activities
-EasyAds.appOpen.enableAppResume(
-    application = this,
-    adUnitId = "ca-app-pub-3940256099942544/9257395921",
-    disallowedActivityClasses = setOf(SplashActivity::class.java)
-)
+*(Or in root `build.gradle` for older Gradle projects):*
+```groovy
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+### Step 2: Add Dependency
+In your app's `build.gradle.kts`:
+```kotlin
+dependencies {
+    implementation("com.github.smzh745:EasyAdsSdk:1.0.0")
+}
+```
+*(Or in Groovy `build.gradle`):*
+```groovy
+dependencies {
+    implementation 'com.github.smzh745:EasyAdsSdk:1.0.0'
+}
 ```
 
 ---
 
-## 🛡️ GDPR / Google UMP Consent Management
+## 🚀 Initialization
+
+Initialize EasyAds in your `Application` class using the modern fluent builder:
+
+```kotlin
+class MyApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        EasyAds.init(this) {
+            isDebug = BuildConfig.DEBUG
+            
+            // Simulates European Economic Area (EEA) in debug builds to test GDPR:
+            isDebugGeographyEEA = BuildConfig.DEBUG
+            // testDeviceHashedId = "YOUR_TEST_DEVICE_HASHED_ID" // If testing on a physical phone
+
+            // Enable automatic App-Resume App Open ad (excluding Splash screen):
+            enableAppResume(
+                application = this@MyApplication,
+                adUnitId = if (BuildConfig.DEBUG) TestAdUnits.APP_OPEN else "YOUR_REAL_APP_OPEN_ID",
+                disallowedActivityClasses = setOf(SplashActivity::class.java)
+            )
+
+            // Connect Firebase Remote Config (optional):
+            remoteConfig { key -> FirebaseRemoteConfig.getInstance().getBoolean(key) }
+        }
+    }
+}
+```
+
+---
+
+## 🛡️ GDPR / Google UMP Consent Flow
 
 ### 1. Requesting Consent on Splash Screen
 ```kotlin
 EasyAds.consent.requestConsent(this) { canRequestAds ->
     if (canRequestAds) {
-        // Preload splash ads or proceed to main screen
-        EasyAds.appOpen.loadAndShowSplash(this, adUnitId, timeoutMs = 4000L) {
+        // Pre-warm or show splash ads
+        EasyAds.appOpen.loadAndShowSplash(
+            activity = this,
+            adUnitId = TestAdUnits.APP_OPEN,
+            timeoutMs = 4000L
+        ) {
             navigateToMain()
         }
     } else {
@@ -96,34 +113,87 @@ EasyAds.consent.requestConsent(this) { canRequestAds ->
 }
 ```
 
-### 2. Providing Privacy Options in Settings (Google Play Policy Requirement)
-Google AdMob requires EEA/UK users to be able to revoke/modify consent at any time:
+### 2. Providing Privacy Options in Settings (Google Play Policy)
+Google requires apps serving EEA/UK users to provide an option in Settings to revoke or modify consent:
 ```kotlin
 // Check if user is in EEA / requires privacy options:
-val isRequired = EasyAds.consent.isPrivacyOptionsRequired(context)
+val isRequired = EasyAds.consent.isPrivacyOptionsRequired(this)
 
-// Show privacy form when user taps "Consent Choices" or "Privacy Options":
+// Show Google's privacy options dialog when tapped:
 binding.btnPrivacyOptions.setOnClickListener {
     EasyAds.consent.showPrivacyOptionsForm(this) { formError ->
-        // Handle completion
+        // Consent choices updated
     }
 }
 ```
 
 ---
 
-## ⏱️ Frequency & Interval Management
+## 🎨 Customizing Native Ads
 
-Easily trigger interstitial ads every N user actions (e.g. every 2-4 downloads or 2-3 clicks):
+### 1. Custom Brand Styling (`NativeAdStyle`)
+Customize CTA buttons, background cards, typography, and badges to match your app:
 
 ```kotlin
-// Define counter with random interval (between 2 and 4 actions)
-val downloadAdCounter = FrequencyCounter(minInterval = 2, maxInterval = 4)
+val myBrandStyle = NativeAdStyle(
+    ctaBackgroundColor = Color.parseColor("#4CAF50"),
+    ctaTextColor = Color.WHITE,
+    ctaCornerRadiusDp = 10f,
+    cardBackgroundColor = Color.parseColor("#F5F5F5"),
+    cardCornerRadiusDp = 16f,
+    primaryTextColor = Color.BLACK,
+    secondaryTextColor = Color.GRAY
+)
 
-fun onDownloadCompleted(context: Context) {
-    downloadAdCounter.onAction {
+// Set globally for all Native Ads:
+EasyAds.nativeAd.defaultStyle = myBrandStyle
+
+// Or set per view:
+binding.nativeAdView.style = myBrandStyle
+```
+
+### 2. Built-in Templates & Shimmer
+
+| Template | Description | Recommended Placement |
+| :--- | :--- | :--- |
+| `NativeTemplate.BANNER` | Compact horizontal row (~56dp) | In-feed lists, banner replacements |
+| `NativeTemplate.SMALL` | Compact card (~90dp) | Dialogs, bottom sheets, item headers |
+| `NativeTemplate.MEDIUM` | Standard card with 140dp media view (~250dp) | Feeds, article pages |
+| `NativeTemplate.LARGE` | Full card with 180dp media view & rating (~360dp) | Exit dialogs, end-of-flow screens |
+| `NativeTemplate.SHIMMER_BANNER` | Shimmer loading placeholder for Banner | Loading state |
+| `NativeTemplate.SHIMMER_MEDIUM` | Shimmer loading placeholder for Medium | Loading state |
+| `NativeTemplate.CUSTOM(R.layout.my_ad)` | 100% custom layout | Custom branded layouts |
+
+### 3. Loading in XML
+```xml
+<com.easyads.sdk.nativead.view.EasyNativeView
+    android:id="@+id/nativeAdView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
+```
+```kotlin
+binding.nativeAdView.loadAndShow(
+    activity = this,
+    adUnitId = TestAdUnits.NATIVE_ADVANCED,
+    template = NativeTemplate.MEDIUM,
+    showShimmer = true
+)
+```
+
+---
+
+## ⏱️ Frequency Capping (`FrequencyCounter`)
+
+Trigger interstitial ads every N actions (e.g. every 2–4 downloads or 2–3 clicks):
+
+```kotlin
+val downloadCounter = FrequencyCounter(minInterval = 2, maxInterval = 4)
+
+fun onStatusDownloaded(context: Context) {
+    downloadCounter.onAction {
+        // Safe context unwrapper resolves Activity without lifecycle callbacks
         context.findActivity()?.let { activity ->
-            EasyAds.interstitial.show(activity, adUnitId)
+            EasyAds.interstitial.show(activity, TestAdUnits.INTERSTITIAL)
         }
     }
 }
@@ -131,69 +201,50 @@ fun onDownloadCompleted(context: Context) {
 
 ---
 
-## 🎨 Native Ads with Different Sizes & Shimmer
+## 🧪 Built-in Test Ad Unit IDs (`TestAdUnits`)
 
-EasyAds includes **pre-built responsive templates** and supports **custom XML layouts**:
-
-| Template | Description | Recommended Placement |
-| :--- | :--- | :--- |
-| `NativeTemplate.BANNER` | Compact horizontal row (~56dp) | In-feed lists, replacing traditional banner ads |
-| `NativeTemplate.SMALL` | Compact card (~90dp) | Bottom sheets, dialogs, list items |
-| `NativeTemplate.MEDIUM` | Standard card with 140dp media view (~250dp) | Content feeds, mid-screen cards |
-| `NativeTemplate.LARGE` | Full card with 180dp media view, star rating & full-width CTA (~360dp) | Exit dialogs, end-of-flow screens, high-engagement screens |
-| `NativeTemplate.SHIMMER_BANNER` | Shimmer placeholder for Banner | Loading state |
-| `NativeTemplate.SHIMMER_MEDIUM` | Shimmer placeholder for Medium | Loading state |
-| `NativeTemplate.CUSTOM(R.layout.my_ad)` | 100% custom layout | Custom branded layouts |
-
-### XML Declaration:
-```xml
-<com.easyads.sdk.nativead.view.EasyNativeView
-    android:id="@+id/nativeAdView"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content" />
-```
-
-### Loading Any Size:
+Official Google AdMob test IDs are built-in:
 ```kotlin
-binding.nativeAdView.loadAndShow(
-    activity = this,
-    adUnitId = "ca-app-pub-3940256099942544/2247696110",
-    template = NativeTemplate.MEDIUM,
-    remoteKey = "native_home"
-)
-```
-
----
-
-## 🎛️ Remote Config Control: Show or Hide Ads
-
-Every format supports an optional `remoteKey` parameter. When passed, **EasyAds** validates whether the ad is enabled before making requests or displaying views.
-
-```kotlin
-// Connect Firebase Remote Config:
-EasyAds.setRemoteConfigProvider { remoteKey ->
-    FirebaseRemoteConfig.getInstance().getBoolean(remoteKey)
-}
-
-// Or pass a bulk map:
-EasyAds.setRemoteConfigValues(
-    mapOf(
-        "banner_home" to true,
-        "interstitial_splash" to false,
-        "native_home" to true
-    )
-)
+TestAdUnits.APP_OPEN
+TestAdUnits.BANNER
+TestAdUnits.ADAPTIVE_BANNER
+TestAdUnits.INTERSTITIAL
+TestAdUnits.INTERSTITIAL_VIDEO
+TestAdUnits.REWARDED
+TestAdUnits.REWARDED_INTERSTITIAL
+TestAdUnits.NATIVE_ADVANCED
+TestAdUnits.NATIVE_VIDEO
 ```
 
 ---
 
 ## 💎 Ad-Free / In-App Purchase Support
 
-When a user purchases an Ad-Free upgrade or subscription:
-
+When a user purchases an Ad-Free tier:
 ```kotlin
 EasyAds.isAdFree = true
 ```
+* Instantly evicts and destroys all in-memory ad caches.
+* All future ad requests return immediately without loading or network activity.
 
-* All existing in-memory ad caches (Banners, Interstitials, Native, App Open, Rewarded) are **purged immediately**.
-* Any future ad requests fail-fast without hitting the network or initializing views.
+---
+
+## 🚢 Deployment & Publishing to JitPack / GitHub
+
+### How to Release a New Version:
+1. **Commit and push your changes:**
+   ```bash
+   git add .
+   git commit -m "Release version 1.0.0"
+   git push origin master
+   ```
+
+2. **Create a Git Tag and Push:**
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+
+3. **Automatic Deployment:**
+   - **JitPack**: Automatically detects the `v1.0.0` tag, runs `publishToMavenLocal` using `jitpack.yml`, and builds the public library at `https://jitpack.io/#smzh745/EasyAdsSdk`.
+   - **GitHub Actions**: The `.github/workflows/release.yml` workflow automatically builds `easyads-release.aar` and attaches it directly to the GitHub Release for direct download.

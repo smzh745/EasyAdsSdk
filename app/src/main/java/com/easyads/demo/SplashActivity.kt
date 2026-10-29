@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.easyads.demo.databinding.ActivitySplashBinding
 import com.easyads.sdk.EasyAds
+import com.easyads.sdk.core.TestAdUnits
 import com.easyads.sdk.extensions.showSplashAppOpenAd
 
 class SplashActivity : AppCompatActivity() {
@@ -26,7 +27,7 @@ class SplashActivity : AppCompatActivity() {
             if (canRequestAds) {
                 // 2. Load and show Splash App Open ad (safety timeout 4s)
                 showSplashAppOpenAd(
-                    adUnitId = getString(R.string.test_app_open_id),
+                    adUnitId = TestAdUnits.APP_OPEN,
                     timeoutMs = 4000L
                 ) {
                     navigateToMain()

@@ -1,5 +1,7 @@
 package com.easyads.sdk
 
+import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.ads.MobileAds
@@ -60,6 +62,35 @@ object EasyAds {
         set(value) {
             com.easyads.sdk.core.EasyAdsLogger.isEnabled = value
         }
+
+    /**
+     * Modern Kotlin DSL configuration builder for EasyAds.
+     *
+     * Example:
+     * ```kotlin
+     * EasyAds.init(this) {
+     *     isDebug = BuildConfig.DEBUG
+     *     enableAppResume(this@App, adUnitId, disallowedActivityClasses = setOf(SplashActivity::class.java))
+     *     remoteConfig { key -> firebaseRemoteConfig.getBoolean(key) }
+     * }
+     * ```
+     */
+    fun init(context: Context, configure: EasyAdsConfiguration.() -> Unit = {}) {
+        val config = EasyAdsConfiguration(context).apply(configure)
+        this.isAdFree = config.isAdFree
+        if (config.isDebugGeographyEEA) {
+            consent.isDebugGeographyEEA = true
+        }
+        if (config.testDeviceHashedId != null) {
+            consent.testDeviceHashedId = config.testDeviceHashedId
+        }
+        initialize(
+            context = context,
+            isDebug = config.isDebug,
+            testDeviceIds = config.testDeviceIds,
+            onInitialized = config.onInitialized
+        )
+    }
 
     /**
      * Initializes Google Mobile Ads SDK.
@@ -135,3 +166,49 @@ object EasyAds {
         rewarded.destroyAll()
     }
 }
+
+/**
+ * Fluent builder options for [EasyAds.init].
+ */
+class EasyAdsConfiguration internal constructor(private val context: Context) {
+    var isDebug: Boolean = false
+    var testDeviceIds: List<String> = emptyList()
+    var isAdFree: Boolean = false
+    var isDebugGeographyEEA: Boolean = false
+    var testDeviceHashedId: String? = null
+    var onInitialized: () -> Unit = {}
+
+    /**
+     * Enables automatic App-Resume App Open ads.
+     */
+    fun enableAppResume(
+        application: Application,
+        adUnitId: String,
+        remoteKey: String? = null,
+        allowedActivityClass: Class<out Activity>? = null,
+        disallowedActivityClasses: Set<Class<out Activity>> = emptySet()
+    ) {
+        EasyAds.appOpen.enableAppResume(
+            application = application,
+            adUnitId = adUnitId,
+            remoteKey = remoteKey,
+            allowedActivityClass = allowedActivityClass,
+            disallowedActivityClasses = disallowedActivityClasses
+        )
+    }
+
+    /**
+     * Connects a custom [RemoteConfigProvider] (e.g. Firebase Remote Config).
+     */
+    fun remoteConfig(provider: RemoteConfigProvider) {
+        EasyAds.setRemoteConfigProvider(provider)
+    }
+
+    /**
+     * Connects a lambda evaluator for Remote Config keys.
+     */
+    fun remoteConfig(evaluator: (String) -> Boolean) {
+        EasyAds.setRemoteConfigProvider(evaluator)
+    }
+}
+

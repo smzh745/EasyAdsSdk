@@ -28,6 +28,11 @@ class EasyNativeView @JvmOverloads constructor(
     private var isAdLoading: Boolean = false
 
     /**
+     * Optional custom brand style applied to native ads displayed in this view.
+     */
+    var style: com.easyads.sdk.nativead.NativeAdStyle? = null
+
+    /**
      * Loads and displays a Native Ad with automatic Shimmer placeholder during loading.
      */
     fun loadAndShow(
@@ -36,6 +41,7 @@ class EasyNativeView @JvmOverloads constructor(
         template: NativeTemplate = NativeTemplate.MEDIUM,
         remoteKey: String? = null,
         remoteTemplateKey: String? = null,
+        style: com.easyads.sdk.nativead.NativeAdStyle? = null,
         showShimmer: Boolean = true,
         forceReload: Boolean = false,
         onResult: (AdResult) -> Unit = {}
@@ -97,7 +103,7 @@ class EasyNativeView @JvmOverloads constructor(
             if (nativeAd != null && activity.isSafeForAd() && !EasyAds.isAdFree) {
                 isAdLoaded = true
                 visibility = VISIBLE
-                EasyAds.nativeAd.bind(nativeAd, this@EasyNativeView, effectiveTemplate)
+                EasyAds.nativeAd.bind(nativeAd, this@EasyNativeView, effectiveTemplate, style ?: this.style)
                 onResult(AdResult.Loaded)
             } else {
                 isAdLoaded = false
@@ -113,6 +119,7 @@ class EasyNativeView @JvmOverloads constructor(
         template: NativeTemplate = NativeTemplate.MEDIUM,
         remoteKey: String? = null,
         remoteTemplateKey: String? = null,
+        style: com.easyads.sdk.nativead.NativeAdStyle? = null,
         showShimmer: Boolean = true,
         forceReload: Boolean = false,
         onResult: (AdResult) -> Unit = {}
@@ -122,7 +129,7 @@ class EasyNativeView @JvmOverloads constructor(
             onResult(AdResult.Failed("Fragment not attached to activity"))
             return
         }
-        loadAndShow(act, adUnitId, template, remoteKey, remoteTemplateKey, showShimmer, forceReload) { result ->
+        loadAndShow(act, adUnitId, template, remoteKey, remoteTemplateKey, style ?: this.style, showShimmer, forceReload) { result ->
             if (fragment.isAdded) {
                 onResult(result)
             }

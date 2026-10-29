@@ -7,9 +7,11 @@ import com.easyads.demo.databinding.ActivityMainBinding
 import com.easyads.sdk.EasyAds
 import com.easyads.sdk.banner.BannerType
 import com.easyads.sdk.core.FrequencyCounter
+import com.easyads.sdk.core.TestAdUnits
 import com.easyads.sdk.extensions.loadInterstitialAd
 import com.easyads.sdk.extensions.showInterstitialAd
 import com.easyads.sdk.extensions.showRewardedAd
+import com.easyads.sdk.nativead.NativeAdStyle
 import com.easyads.sdk.nativead.NativeTemplate
 
 class MainActivity : AppCompatActivity() {
@@ -125,14 +127,14 @@ class MainActivity : AppCompatActivity() {
     private fun setupFullscreenButtons() {
         // Preload Interstitial and Rewarded upfront
         loadInterstitialAd(
-            adUnitId = getString(R.string.test_interstitial_id),
+            adUnitId = TestAdUnits.INTERSTITIAL,
             remoteKey = REMOTE_KEY_INTERSTITIAL
         )
-        EasyAds.rewarded.load(this, getString(R.string.test_rewarded_id))
+        EasyAds.rewarded.load(this, TestAdUnits.REWARDED)
 
         binding.btnInterstitial.setOnClickListener {
             showInterstitialAd(
-                adUnitId = getString(R.string.test_interstitial_id),
+                adUnitId = TestAdUnits.INTERSTITIAL,
                 remoteKey = REMOTE_KEY_INTERSTITIAL,
                 autoReload = true
             ) {
@@ -142,7 +144,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnRewarded.setOnClickListener {
             showRewardedAd(
-                adUnitId = getString(R.string.test_rewarded_id),
+                adUnitId = TestAdUnits.REWARDED,
                 autoReload = true,
                 onUserEarnedReward = { amount, type ->
                     earnedCoins += amount
@@ -161,7 +163,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnFrequencyInterstitial.setOnClickListener {
             val triggered = frequencyCounter.onAction {
                 showInterstitialAd(
-                    adUnitId = getString(R.string.test_interstitial_id),
+                    adUnitId = TestAdUnits.INTERSTITIAL,
                     remoteKey = REMOTE_KEY_INTERSTITIAL,
                     autoReload = true
                 ) {
@@ -188,7 +190,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadBanner() {
         binding.bannerAdView.load(
             activity = this,
-            adUnitId = getString(R.string.test_banner_id),
+            adUnitId = TestAdUnits.ADAPTIVE_BANNER,
             bannerType = BannerType.ADAPTIVE,
             remoteKey = REMOTE_KEY_BANNER
         )
@@ -196,9 +198,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadNative(template: NativeTemplate) {
         currentNativeTemplate = template
+        // Custom styling demonstrated:
+        binding.nativeAdView.style = NativeAdStyle(
+            ctaBackgroundColor = getColor(R.color.primary),
+            ctaTextColor = getColor(android.R.color.white),
+            ctaCornerRadiusDp = 8f,
+            cardCornerRadiusDp = 12f
+        )
         binding.nativeAdView.loadAndShow(
             activity = this,
-            adUnitId = getString(R.string.test_native_id),
+            adUnitId = TestAdUnits.NATIVE_ADVANCED,
             template = template,
             remoteKey = REMOTE_KEY_NATIVE
         )

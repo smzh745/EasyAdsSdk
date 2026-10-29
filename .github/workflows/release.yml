@@ -1,0 +1,47 @@
+name: Build and Release AAR
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Publish Release AAR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Grant Execute Permission to Gradlew
+        run: chmod +x gradlew
+
+      - name: Build Library AAR & Verify Publish
+        run: ./gradlew :easyads:assembleRelease :easyads:publishToMavenLocal
+
+      - name: Locate AAR File
+        id: find_aar
+        run: |
+          AAR_PATH=$(find easyads/build/outputs/aar -name "*release.aar" | head -n 1)
+          echo "Found AAR: $AAR_PATH"
+          echo "aar_path=$AAR_PATH" >> $GITHUB_OUTPUT
+
+      - name: Upload AAR to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find_aar.outputs.aar_path }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
