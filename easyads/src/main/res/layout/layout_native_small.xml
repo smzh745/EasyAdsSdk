@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.gms.ads.nativead.NativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nativeAdView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_native_card"
+    android:padding="8dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Ad Attribution Badge -->
+        <TextView
+            android:id="@+id/adAttribution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_ad_badge"
+            android:text="AD"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- App Icon -->
+        <ImageView
+            android:id="@+id/adAppIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:contentDescription="Ad icon"
+            android:scaleType="centerCrop"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/adAttribution"
+            tools:src="@android:drawable/sym_def_app_icon" />
+
+        <!-- Headline -->
+        <TextView
+            android:id="@+id/adHeadline"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#1F1F1F"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/adCallToAction"
+            app:layout_constraintStart_toEndOf="@id/adAppIcon"
+            app:layout_constraintTop_toTopOf="@id/adAppIcon"
+            tools:text="App Headline Here" />
+
+        <!-- Body -->
+        <TextView
+            android:id="@+id/adBody"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@id/adAppIcon"
+            app:layout_constraintEnd_toStartOf="@id/adCallToAction"
+            app:layout_constraintStart_toEndOf="@id/adAppIcon"
+            app:layout_constraintTop_toBottomOf="@id/adHeadline"
+            tools:text="App description and details go here." />
+
+        <!-- CTA Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/adCallToAction"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:backgroundTint="#1976D2"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingHorizontal="16dp"
+            android:text="Install"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            app:cornerRadius="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.gms.ads.nativead.NativeAdView>

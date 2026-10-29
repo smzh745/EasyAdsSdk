@@ -1,0 +1,5 @@
+<resources>
+    <string name="easyads_app_name">EasyAds SDK</string>
+    <string name="easyads_ad_badge">Ad</string>
+    <string name="easyads_install_now">Install</string>
+</resources>

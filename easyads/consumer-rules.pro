@@ -1,0 +1,2 @@
+-keep class com.easyads.sdk.** { *; }
+-keepclassmembers class com.easyads.sdk.** { *; }

@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">EasyAds Demo</string>
+
+    <!-- Google Sample Ad Units for Testing -->
+    <string name="test_app_open_id">ca-app-pub-3940256099942544/9257395921</string>
+    <string name="test_banner_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="test_interstitial_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="test_native_id">ca-app-pub-3940256099942544/2247696110</string>
+    <string name="test_rewarded_id">ca-app-pub-3940256099942544/5224354917</string>
+</resources>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.gms.ads.nativead.NativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nativeAdView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_native_card"
+    android:padding="12dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Header: Badge + Icon + Headline + Body -->
+        <TextView
+            android:id="@+id/adAttribution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_ad_badge"
+            android:text="AD"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/adAppIcon"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:contentDescription="Ad icon"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/adAttribution"
+            tools:src="@android:drawable/sym_def_app_icon" />
+
+        <TextView
+            android:id="@+id/adHeadline"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#1F1F1F"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/adAppIcon"
+            app:layout_constraintTop_toTopOf="@id/adAppIcon"
+            tools:text="App Headline Here" />
+
+        <TextView
+            android:id="@+id/adBody"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/adAppIcon"
+            app:layout_constraintTop_toBottomOf="@id/adHeadline"
+            tools:text="App description and secondary details for user engagement." />
+
+        <!-- Media View (Image / Video) -->
+        <com.google.android.gms.ads.nativead.MediaView
+            android:id="@+id/adMedia"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/adAppIcon" />
+
+        <!-- Call To Action Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/adCallToAction"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#1976D2"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="Install Now"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            app:cornerRadius="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/adMedia" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.gms.ads.nativead.NativeAdView>
