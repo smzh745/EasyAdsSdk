@@ -10,6 +10,7 @@ import com.easyads.sdk.extensions.showSplashAppOpenAd
 
 class SplashActivity : AppCompatActivity() {
 
+
     private lateinit var binding: ActivitySplashBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
