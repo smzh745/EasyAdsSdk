@@ -46,16 +46,18 @@ allprojects {
 ```
 
 ### Step 2: Add Dependency
-In your app's `build.gradle.kts`:
+Because this is a multi-module library, reference the `:easyads` module:
+
+In your app's `build.gradle.kts` (Kotlin DSL):
 ```kotlin
 dependencies {
-    implementation("com.github.smzh745:EasyAdsSdk:v1.0.0")
+    implementation("com.github.smzh745.EasyAdsSdk:easyads:v1.0.0")
 }
 ```
 *(Or in Groovy `build.gradle`):*
 ```groovy
 dependencies {
-    implementation 'com.github.smzh745:EasyAdsSdk:v1.0.0'
+    implementation 'com.github.smzh745.EasyAdsSdk:easyads:v1.0.0'
 }
 ```
 
