@@ -3,5 +3,6 @@
     <item type="id" name="adBadge" />
     <item type="id" name="adAttribution" />
     <item type="id" name="nativeCardView" />
+    <item type="id" name="adChoicesView" />
+    <item type="id" name="adChoices" />
 </resources>
-
