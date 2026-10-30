@@ -42,6 +42,7 @@ class EasyNativeView @JvmOverloads constructor(
         remoteKey: String? = null,
         remoteTemplateKey: String? = null,
         style: com.easyads.sdk.nativead.NativeAdStyle? = null,
+        adChoicesPlacement: Int? = null,
         showShimmer: Boolean = true,
         forceReload: Boolean = false,
         onResult: (AdResult) -> Unit = {}
@@ -97,13 +98,13 @@ class EasyNativeView @JvmOverloads constructor(
             displayShimmer(effectiveTemplate)
         }
 
-        EasyAds.nativeAd.load(activity, adUnitId, remoteKey) { nativeAd ->
+        EasyAds.nativeAd.load(activity, adUnitId, remoteKey, adChoicesPlacement) { nativeAd ->
             isAdLoading = false
             stopShimmer()
             if (nativeAd != null && activity.isSafeForAd() && !EasyAds.isAdFree) {
                 isAdLoaded = true
                 visibility = VISIBLE
-                EasyAds.nativeAd.bind(nativeAd, this@EasyNativeView, effectiveTemplate, style ?: this.style)
+                EasyAds.nativeAd.bind(nativeAd, this@EasyNativeView, effectiveTemplate)
                 onResult(AdResult.Loaded)
             } else {
                 isAdLoaded = false
@@ -120,6 +121,7 @@ class EasyNativeView @JvmOverloads constructor(
         remoteKey: String? = null,
         remoteTemplateKey: String? = null,
         style: com.easyads.sdk.nativead.NativeAdStyle? = null,
+        adChoicesPlacement: Int? = null,
         showShimmer: Boolean = true,
         forceReload: Boolean = false,
         onResult: (AdResult) -> Unit = {}
@@ -129,7 +131,7 @@ class EasyNativeView @JvmOverloads constructor(
             onResult(AdResult.Failed("Fragment not attached to activity"))
             return
         }
-        loadAndShow(act, adUnitId, template, remoteKey, remoteTemplateKey, style ?: this.style, showShimmer, forceReload) { result ->
+        loadAndShow(act, adUnitId, template, remoteKey, remoteTemplateKey, style ?: this.style, adChoicesPlacement, showShimmer, forceReload) { result ->
             if (fragment.isAdded) {
                 onResult(result)
             }

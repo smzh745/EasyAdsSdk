@@ -84,6 +84,9 @@ object EasyAds {
         if (config.testDeviceHashedId != null) {
             consent.testDeviceHashedId = config.testDeviceHashedId
         }
+        config.nativeAdChoicesPlacement?.let {
+            nativeAd.defaultAdChoicesPlacement = it
+        }
         initialize(
             context = context,
             isDebug = config.isDebug,
@@ -176,6 +179,7 @@ class EasyAdsConfiguration internal constructor(private val context: Context) {
     var isAdFree: Boolean = false
     var isDebugGeographyEEA: Boolean = false
     var testDeviceHashedId: String? = null
+    var nativeAdChoicesPlacement: Int? = null
     var onInitialized: () -> Unit = {}
 
     /**

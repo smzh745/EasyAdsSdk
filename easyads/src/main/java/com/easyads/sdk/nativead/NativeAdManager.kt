@@ -12,6 +12,7 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.nativead.AdChoicesView
 import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
@@ -25,9 +26,15 @@ import com.easyads.sdk.core.NetworkUtils
 
 class NativeAdManager internal constructor() {
 
-    var defaultStyle: NativeAdStyle? = null
     private val cachedNativeAds = mutableMapOf<String, NativeAd>()
     private val inFlightCallbacks = mutableMapOf<String, MutableList<(NativeAd?) -> Unit>>()
+
+    /**
+     * Default AdChoices icon placement for native ads.
+     * Defaults to [NativeAdOptions.ADCHOICES_TOP_LEFT] so the Google AdChoices / info icon
+     * never overlaps Call-To-Action (Install) buttons situated on the right side of native banner layouts.
+     */
+    var defaultAdChoicesPlacement: Int = NativeAdOptions.ADCHOICES_TOP_LEFT
 
     fun isLoaded(adUnitId: String): Boolean = cachedNativeAds.containsKey(adUnitId)
 
@@ -35,6 +42,7 @@ class NativeAdManager internal constructor() {
         context: Context,
         adUnitId: String,
         remoteKey: String? = null,
+        adChoicesPlacement: Int? = null,
         onResult: (NativeAd?) -> Unit = {}
     ) {
         if (EasyAds.isAdFree) {
@@ -114,7 +122,7 @@ class NativeAdManager internal constructor() {
             })
             .withNativeAdOptions(
                 NativeAdOptions.Builder()
-                    .setAdChoicesPlacement(NativeAdOptions.ADCHOICES_TOP_RIGHT)
+                    .setAdChoicesPlacement(adChoicesPlacement ?: defaultAdChoicesPlacement)
                     .build()
             )
             .build()
@@ -125,8 +133,7 @@ class NativeAdManager internal constructor() {
     fun bind(
         nativeAd: NativeAd,
         container: ViewGroup,
-        template: NativeTemplate = NativeTemplate.MEDIUM,
-        style: NativeAdStyle? = null
+        template: NativeTemplate = NativeTemplate.MEDIUM
     ) {
         container.removeAllViews()
         val inflater = LayoutInflater.from(container.context)
@@ -140,6 +147,12 @@ class NativeAdManager internal constructor() {
         val mediaView = adView.findViewById<MediaView>(R.id.adMedia)
         val starsView = adView.findViewById<RatingBar>(R.id.adStars)
         val advertiserView = adView.findViewById<TextView>(R.id.adAdvertiser)
+        val adChoicesView = adView.findViewById<AdChoicesView>(R.id.adChoicesView)
+            ?: adView.findViewById<AdChoicesView>(R.id.adChoices)
+
+        adChoicesView?.let {
+            adView.adChoicesView = it
+        }
 
         // Populate Headline
         headlineView?.text = nativeAd.headline
@@ -209,9 +222,6 @@ class NativeAdManager internal constructor() {
                 it.visibility = View.GONE
             }
         }
-
-        // Apply optional brand style customization (colors, fonts, corners)
-        (style ?: defaultStyle)?.applyTo(adView)
 
         adView.setNativeAd(nativeAd)
         container.addView(adView)
